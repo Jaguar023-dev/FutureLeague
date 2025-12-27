@@ -1,254 +1,170 @@
-// scripts/generate-assets.js
-const fs = require('fs');
-const path = require('path');
-const { GLTFExporter } = require('three/examples/jsm/exporters/GLTFExporter');
-const { Scene, Mesh, BoxGeometry, SphereGeometry, CylinderGeometry, MeshBasicMaterial, Group } = require('three');
+#!/usr/bin/env node
 
-// Ensure directory exists
-const modelsDir = path.join(__dirname, '../public/assets/models');
-['players', 'stadiums', 'balls', 'trophies'].forEach(dir => {
-  const fullPath = path.join(modelsDir, dir);
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Create directory structure
+const directories = [
+  'public/assets/models/players',
+  'public/assets/models/stadiums',
+  'public/assets/models/balls',
+  'public/assets/models/trophies',
+  'public/assets/textures/kits',
+  'public/assets/textures/faces',
+  'public/assets/textures/stadiums',
+  'public/assets/textures/ui',
+  'public/assets/sounds/effects',
+  'public/assets/sounds/music',
+  'public/assets/sounds/commentary',
+  'public/assets/animations'
+];
+
+console.log('📁 Creating Future League directory structure...');
+
+directories.forEach(dir => {
+  const fullPath = path.join(__dirname, '..', dir);
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(fullPath, { recursive: true });
+    console.log(`✅ Created: ${dir}`);
   }
 });
 
-function exportGLB(object, filename) {
-  const exporter = new GLTFExporter();
-  exporter.parse(
-    object,
-    (glb) => {
-      fs.writeFileSync(filename, Buffer.from(glb));
-      console.log(`Generated: ${filename}`);
-    },
-    { binary: true }
-  );
+// Create placeholder files
+const placeholderFiles = [
+  // Models
+  'public/assets/models/players/base_player.glb',
+  'public/assets/models/players/goalkeeper.glb',
+  'public/assets/models/players/referee.glb',
+  'public/assets/models/stadiums/stadium_01.glb',
+  'public/assets/models/stadiums/stadium_02.glb',
+  'public/assets/models/stadiums/worldcup_stadium.glb',
+  'public/assets/models/balls/ball_classic.glb',
+  'public/assets/models/balls/ball_worldcup.glb',
+  'public/assets/models/balls/ball_premier.glb',
+  'public/assets/models/trophies/premier_league.glb',
+  'public/assets/models/trophies/world_cup.glb',
+  'public/assets/models/trophies/champions_league.glb',
+  
+  // Textures
+  'public/assets/textures/kits/mancity_home.png',
+  'public/assets/textures/kits/mancity_away.png',
+  'public/assets/textures/kits/manutd_home.png',
+  'public/assets/textures/kits/manutd_away.png',
+  'public/assets/textures/kits/liverpool_home.png',
+  'public/assets/textures/kits/liverpool_away.png',
+  'public/assets/textures/kits/nigeria_home.png',
+  'public/assets/textures/kits/nigeria_away.png',
+  'public/assets/textures/faces/generic_01.png',
+  'public/assets/textures/faces/generic_02.png',
+  'public/assets/textures/stadiums/grass_01.png',
+  'public/assets/textures/stadiums/crowd.png',
+  'public/assets/textures/ui/button_normal.png',
+  'public/assets/textures/ui/button_pressed.png',
+  'public/assets/textures/ui/background.png',
+  
+  // Animations
+  'public/assets/animations/player_animations.glb',
+  'public/assets/animations/goal_celebration.glb'
+];
+
+console.log('\n📄 Creating placeholder files...');
+
+placeholderFiles.forEach(file => {
+  const fullPath = path.join(__dirname, '..', file);
+  
+  if (!fs.existsSync(fullPath)) {
+    // Create parent directory if it doesn't exist
+    const parentDir = path.dirname(fullPath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+    
+    // Create placeholder content based on file type
+    if (file.endsWith('.glb')) {
+      // Minimal GLB file (just a header)
+      const glbHeader = Buffer.from([
+        0x67, 0x6C, 0x54, 0x46,  // "glTF"
+        0x02, 0x00, 0x00, 0x00,  // Version 2
+        0x0C, 0x00, 0x00, 0x00   // Length
+      ]);
+      fs.writeFileSync(fullPath, glbHeader);
+    } else if (file.endsWith('.png')) {
+      // Create a simple text file that can be replaced with actual PNG
+      fs.writeFileSync(fullPath, `Placeholder for ${path.basename(file)}`);
+    } else {
+      // Create empty file
+      fs.writeFileSync(fullPath, '');
+    }
+    
+    console.log(`✅ Created: ${file}`);
+  }
+});
+
+// Create README for assets
+const readmePath = path.join(__dirname, '..', 'public/assets/README.md');
+const readmeContent = `# Future League Assets
+
+This directory contains all game assets for Future League.
+
+## Directory Structure
+
+\`\`\`
+assets/
+├── models/          # 3D models (.glb format)
+│   ├── players/    # Player models
+│   ├── stadiums/   # Stadium models
+│   ├── balls/      # Ball models
+│   └── trophies/   # Trophy models
+├── textures/       # 2D textures
+│   ├── kits/      # Team kits
+│   ├── faces/     # Player faces
+│   ├── stadiums/  # Stadium textures
+│   └── ui/        # UI elements
+├── sounds/         # Audio files
+│   ├── effects/   # Sound effects
+│   ├── music/     # Background music
+│   └── commentary/# Commentary
+└── animations/     # Animation files
+\`\`\`
+
+## Asset Sources
+
+Replace placeholder files with actual assets from:
+
+### Free Resources:
+- **Sketchfab** (https://sketchfab.com) - Search for "soccer", "stadium", "trophy"
+- **Mixamo** (https://mixamo.com) - Character models with animations
+- **Kenney.nl** (https://kenney.nl) - Free game assets
+- **OpenGameArt** (https://opengameart.org)
+
+### Paid Resources (Recommended):
+- **TurboSquid** (https://turbosquid.com) - Professional 3D models
+- **CGTrader** (https://cgtrader.com) - High-quality models
+- **Unity Asset Store** (can export for Three.js)
+
+## File Formats
+- **Models**: GLB/GLTF format (Three.js compatible)
+- **Textures**: PNG format (with transparency if needed)
+- **Sounds**: OGG/MP3 format
+
+## Important Notes
+1. Keep file sizes optimized for mobile
+2. Use texture compression where possible
+3. Test on mobile devices regularly
+4. Update this README when adding new assets
+`;
+
+if (!fs.existsSync(readmePath)) {
+  fs.writeFileSync(readmePath, readmeContent);
+  console.log('\n📝 Created: public/assets/README.md');
 }
 
-// 1. Create Base Player Model
-const createBasePlayer = () => {
-  const group = new Group();
-  
-  // Body
-  const body = new Mesh(
-    new BoxGeometry(0.4, 1.2, 0.2),
-    new MeshBasicMaterial({ color: 0x0000ff })
-  );
-  body.position.y = 0.6;
-  group.add(body);
-  
-  // Head
-  const head = new Mesh(
-    new SphereGeometry(0.15, 16, 16),
-    new MeshBasicMaterial({ color: 0xffcc99 })
-  );
-  head.position.y = 1.5;
-  group.add(head);
-  
-  // Arms
-  const leftArm = new Mesh(
-    new CylinderGeometry(0.05, 0.05, 0.8),
-    new MeshBasicMaterial({ color: 0xffcc99 })
-  );
-  leftArm.position.set(-0.3, 0.8, 0);
-  leftArm.rotation.z = Math.PI / 4;
-  group.add(leftArm);
-  
-  const rightArm = new Mesh(
-    new CylinderGeometry(0.05, 0.05, 0.8),
-    new MeshBasicMaterial({ color: 0xffcc99 })
-  );
-  rightArm.position.set(0.3, 0.8, 0);
-  rightArm.rotation.z = -Math.PI / 4;
-  group.add(rightArm);
-  
-  // Legs
-  const leftLeg = new Mesh(
-    new CylinderGeometry(0.07, 0.07, 0.9),
-    new MeshBasicMaterial({ color: 0x000000 })
-  );
-  leftLeg.position.set(-0.1, 0.2, 0);
-  group.add(leftLeg);
-  
-  const rightLeg = new Mesh(
-    new CylinderGeometry(0.07, 0.07, 0.9),
-    new MeshBasicMaterial({ color: 0x000000 })
-  );
-  rightLeg.position.set(0.1, 0.2, 0);
-  group.add(rightLeg);
-  
-  return group;
-};
-
-// 2. Create Goalkeeper Model (different colors)
-const createGoalkeeper = () => {
-  const player = createBasePlayer();
-  player.children.forEach(child => {
-    if (child.material.color.getHex() === 0x0000ff) {
-      child.material.color.setHex(0x00ff00); // Green jersey for GK
-    }
-  });
-  return player;
-};
-
-// 3. Create Referee Model
-const createReferee = () => {
-  const player = createBasePlayer();
-  player.children.forEach(child => {
-    if (child.material.color.getHex() === 0x0000ff) {
-      child.material.color.setHex(0x000000); // Black jersey for referee
-    }
-  });
-  return player;
-};
-
-// 4. Create Stadium Model
-const createStadium = (type = 'basic') => {
-  const group = new Group();
-  
-  // Pitch
-  const pitch = new Mesh(
-    new BoxGeometry(40, 0.1, 20),
-    new MeshBasicMaterial({ color: 0x228B22 }) // Green
-  );
-  group.add(pitch);
-  
-  // Stands
-  const stand1 = new Mesh(
-    new BoxGeometry(45, 5, 3),
-    new MeshBasicMaterial({ color: 0x666666 })
-  );
-  stand1.position.set(0, 2.5, -12);
-  group.add(stand1);
-  
-  const stand2 = new Mesh(
-    new BoxGeometry(45, 5, 3),
-    new MeshBasicMaterial({ color: 0x666666 })
-  );
-  stand2.position.set(0, 2.5, 12);
-  group.add(stand2);
-  
-  const stand3 = new Mesh(
-    new BoxGeometry(3, 5, 20),
-    new MeshBasicMaterial({ color: 0x666666 })
-  );
-  stand3.position.set(-22, 2.5, 0);
-  group.add(stand3);
-  
-  const stand4 = new Mesh(
-    new BoxGeometry(3, 5, 20),
-    new MeshBasicMaterial({ color: 0x666666 })
-  );
-  stand4.position.set(22, 2.5, 0);
-  group.add(stand4);
-  
-  // Goals
-  const goal1 = createGoal();
-  goal1.position.set(0, 1, -9);
-  group.add(goal1);
-  
-  const goal2 = createGoal();
-  goal2.position.set(0, 1, 9);
-  goal2.rotation.y = Math.PI;
-  group.add(goal2);
-  
-  return group;
-};
-
-const createGoal = () => {
-  const group = new Group();
-  
-  // Posts
-  const leftPost = new Mesh(
-    new CylinderGeometry(0.1, 0.1, 2.5),
-    new MeshBasicMaterial({ color: 0xffffff })
-  );
-  leftPost.position.set(-3.66, 1.25, 0);
-  group.add(leftPost);
-  
-  const rightPost = new Mesh(
-    new CylinderGeometry(0.1, 0.1, 2.5),
-    new MeshBasicMaterial({ color: 0xffffff })
-  );
-  rightPost.position.set(3.66, 1.25, 0);
-  group.add(rightPost);
-  
-  // Crossbar
-  const crossbar = new Mesh(
-    new BoxGeometry(7.32, 0.1, 0.1),
-    new MeshBasicMaterial({ color: 0xffffff })
-  );
-  crossbar.position.set(0, 2.5, 0);
-  group.add(crossbar);
-  
-  return group;
-};
-
-// 5. Create World Cup Stadium
-const createWorldCupStadium = () => {
-  const stadium = createStadium();
-  
-  // Add extra details for World Cup stadium
-  const roof = new Mesh(
-    new BoxGeometry(50, 0.5, 25),
-    new MeshBasicMaterial({ color: 0x1a53ff })
-  );
-  roof.position.set(0, 10, 0);
-  stadium.add(roof);
-  
-  const flags = new Group();
-  for (let i = 0; i < 8; i++) {
-    const flag = new Mesh(
-      new BoxGeometry(0.5, 2, 0.05),
-      new MeshBasicMaterial({ color: 0xff0000 })
-    );
-    const angle = (i / 8) * Math.PI * 2;
-    flag.position.set(
-      Math.cos(angle) * 25,
-      3,
-      Math.sin(angle) * 12
-    );
-    flags.add(flag);
-  }
-  stadium.add(flags);
-  
-  return stadium;
-};
-
-// Generate all models
-console.log('Generating sample 3D models...');
-
-// Generate player models
-exportGLB(
-  createBasePlayer(),
-  path.join(modelsDir, 'players/base_player.glb')
-);
-
-exportGLB(
-  createGoalkeeper(),
-  path.join(modelsDir, 'players/goalkeeper.glb')
-);
-
-exportGLB(
-  createReferee(),
-  path.join(modelsDir, 'players/referee.glb')
-);
-
-// Generate stadium models
-exportGLB(
-  createStadium(),
-  path.join(modelsDir, 'stadiums/stadium_01.glb')
-);
-
-exportGLB(
-  createStadium('alternative'),
-  path.join(modelsDir, 'stadiums/stadium_02.glb')
-);
-
-exportGLB(
-  createWorldCupStadium(),
-  path.join(modelsDir, 'stadiums/worldcup_stadium.glb')
-);
-
-console.log('All sample models generated successfully!');
-console.log('Place them in: public/assets/models/');
+console.log('\n🎉 Future League asset structure created successfully!');
+console.log('\nNext steps:');
+console.log('1. Replace placeholder files with actual assets');
+console.log('2. Run \`npm run dev\` to start development server');
+console.log('3. Open http://localhost:5173 in your browser');
