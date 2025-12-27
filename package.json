@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "generate-assets": "node scripts/generate-assets.js",
+    "generate-textures": "node scripts/generate-textures.js",
+    "generate-all": "npm run generate-assets && npm run generate-textures"
+  },
+  "dependencies": {
+    "three": "^0.162.0",
+    "canvas": "^2.11.2"
+  }
+}
