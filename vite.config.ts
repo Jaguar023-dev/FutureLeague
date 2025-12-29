@@ -5,5 +5,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     target: 'es2020'
+  },
+  preview: {
+    allowedHosts: ['futureleague.onrender.com', 'localhost']
   }
 })
